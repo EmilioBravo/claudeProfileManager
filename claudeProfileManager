@@ -1,0 +1,6 @@
+#!/bin/bash
+# Quick launcher for Claude Profile Manager
+
+cd "$(dirname "$0")"
+
+venv/bin/python3 claude_keys.py "$@"

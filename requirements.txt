@@ -1,0 +1,2 @@
+# LLM Key Manager - no external dependencies required
+# Pure Python standard library only
