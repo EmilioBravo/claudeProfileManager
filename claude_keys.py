@@ -8,7 +8,8 @@ from config import (
     ACTIVE_ENV_PATH,
     CONSTANT_ENV_VARS,
     ENV_VAR_MAPPING,
-    detect_bashrc_keys,
+    detect_shell_keys,
+    detect_shell_rc,
     ensure_config_dir,
     extract_oauth_info,
     load_claude_credentials,
@@ -493,10 +494,10 @@ def first_run():
     print("=" * 45)
     print()
 
-    # Try to detect existing keys in .bashrc
-    detected = detect_bashrc_keys()
+    # Try to detect existing keys in shell rc files
+    detected = detect_shell_keys()
     if detected:
-        print(f"Found {len(detected)} potential profile(s) in ~/.bashrc:")
+        print(f"Found {len(detected)} potential profile(s) in shell config:")
         for p in detected:
             print(f"  - {p['name']}: {p['description']}")
             print(f"    Key: {p['api_key'][:8]}...  URL: {p['base_url']}")
@@ -526,27 +527,29 @@ SHELL_FUNCTION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 
 
 def install_shell_function():
-    """Add the claudeProfileManager shell function to ~/.bashrc automatically."""
-    bashrc_path = os.path.expanduser("~/.bashrc")
-    if not os.path.exists(bashrc_path):
-        print(f"~/.bashrc not found — skipping shell function install.")
+    """Add the claudeProfileManager shell function to the user's shell rc file."""
+    rc_path = detect_shell_rc()
+    rc_name = os.path.basename(rc_path)
+
+    if not os.path.exists(rc_path):
+        print(f"~/{rc_name} not found — skipping shell function install.")
         return
 
-    with open(bashrc_path, "r") as f:
+    with open(rc_path, "r") as f:
         content = f.read()
 
     if SHELL_FUNCTION_MARKER in content:
-        print("Shell function already in ~/.bashrc")
+        print(f"Shell function already in ~/{rc_name}")
         return
 
     with open(SHELL_FUNCTION_FILE, "r") as f:
         shell_function_block = f.read()
 
-    with open(bashrc_path, "a") as f:
+    with open(rc_path, "a") as f:
         f.write(shell_function_block)
 
-    print("Added claudeProfileManager shell function to ~/.bashrc")
-    print("Run: source ~/.bashrc  (or open a new terminal)")
+    print(f"Added claudeProfileManager shell function to ~/{rc_name}")
+    print(f"Run: source ~/{rc_name}  (or open a new terminal)")
 
 
 def import_oauth_profile():

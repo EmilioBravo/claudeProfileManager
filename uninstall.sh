@@ -8,6 +8,14 @@ COMMAND_NAME="claudeProfileManager"
 WRAPPER_PATH="$INSTALL_DIR/$COMMAND_NAME"
 CONFIG_DIR="$HOME/.config/claudeProfileManager"
 
+# Detect shell rc file
+if [ -n "$ZSH_VERSION" ] || [ "$(basename "$SHELL")" = "zsh" ]; then
+    SHELL_RC="$HOME/.zshrc"
+else
+    SHELL_RC="$HOME/.bashrc"
+fi
+SHELL_RC_NAME="$(basename "$SHELL_RC")"
+
 echo "========================================================================"
 echo "Claude Profile Manager Uninstallation"
 echo "========================================================================"
@@ -51,16 +59,21 @@ else
     echo "Kept config directory (contains your profiles)"
 fi
 
-# Remove shell function from .bashrc
-BASHRC="$HOME/.bashrc"
+# Remove shell function from rc file
 MARKER="# claudeProfileManager shell function"
 
-if [ -f "$BASHRC" ] && grep -qF "$MARKER" "$BASHRC"; then
-    # Remove the shell function block (from the marker comment to the closing brace)
-    sed -i "/# claudeProfileManager shell function/,/^}/d" "$BASHRC"
-    echo "Removed claudeProfileManager shell function from ~/.bashrc"
+if [ -f "$SHELL_RC" ] && grep -qF "$MARKER" "$SHELL_RC"; then
+    # Use portable sed -i syntax (macOS BSD sed requires '' arg, GNU sed does not)
+    if sed --version >/dev/null 2>&1; then
+        # GNU sed
+        sed -i "/$MARKER/,/^}/d" "$SHELL_RC"
+    else
+        # BSD sed (macOS)
+        sed -i '' "/$MARKER/,/^}/d" "$SHELL_RC"
+    fi
+    echo "Removed claudeProfileManager shell function from ~/$SHELL_RC_NAME"
 else
-    echo "No shell function found in ~/.bashrc"
+    echo "No shell function found in ~/$SHELL_RC_NAME"
 fi
 
 echo

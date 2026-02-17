@@ -35,6 +35,18 @@ DEFAULT_PROFILES = {
 }
 
 
+def detect_shell_rc():
+    """Detect the current shell's rc file path.
+
+    Returns the path to ~/.zshrc or ~/.bashrc based on the SHELL env var.
+    Falls back to ~/.bashrc if the shell can't be determined.
+    """
+    shell = os.environ.get("SHELL", "")
+    if shell.endswith("/zsh"):
+        return os.path.expanduser("~/.zshrc")
+    return os.path.expanduser("~/.bashrc")
+
+
 def ensure_config_dir():
     """Create config directory if it doesn't exist."""
     os.makedirs(CONFIG_DIR, exist_ok=True)
@@ -179,15 +191,28 @@ def extract_oauth_info():
         return None
 
 
-def detect_bashrc_keys():
-    """Detect LLM API key blocks in .bashrc for import."""
-    bashrc_path = os.path.expanduser("~/.bashrc")
-    if not os.path.exists(bashrc_path):
+def detect_shell_keys():
+    """Detect LLM API key blocks in the shell rc file for import.
+
+    Scans ~/.bashrc and ~/.zshrc (whichever exist) for export statements.
+    """
+    rc_candidates = [
+        os.path.expanduser("~/.bashrc"),
+        os.path.expanduser("~/.zshrc"),
+    ]
+
+    content = ""
+    source_name = "shell rc"
+    for rc_path in rc_candidates:
+        if os.path.exists(rc_path):
+            with open(rc_path, "r") as f:
+                content += f.read() + "\n"
+            source_name = os.path.basename(rc_path)
+
+    if not content:
         return []
 
     profiles = []
-    with open(bashrc_path, "r") as f:
-        content = f.read()
 
     # Look for common patterns: export ANTHROPIC_API_KEY=...
     # Detect FortyAU/LiteLLM proxy config
@@ -196,7 +221,7 @@ def detect_bashrc_keys():
     if litellm_key and litellm_url:
         profiles.append({
             "name": "litellm-proxy",
-            "description": "LiteLLM Proxy (imported from .bashrc)",
+            "description": f"LiteLLM Proxy (imported from {source_name})",
             "type": "api",
             "api_key": litellm_key.group(1),
             "base_url": litellm_url.group(1),
@@ -210,7 +235,7 @@ def detect_bashrc_keys():
         if not key_val.startswith("$"):
             profiles.append({
                 "name": "anthropic-direct",
-                "description": "Anthropic Direct (imported from .bashrc)",
+                "description": f"Anthropic Direct (imported from {source_name})",
                 "type": "api",
                 "api_key": key_val,
                 "base_url": "https://api.anthropic.com",
@@ -224,7 +249,7 @@ def detect_bashrc_keys():
         if not key_val.startswith("$"):
             profiles.append({
                 "name": "openai-direct",
-                "description": "OpenAI Direct (imported from .bashrc)",
+                "description": f"OpenAI Direct (imported from {source_name})",
                 "type": "api",
                 "api_key": key_val,
                 "base_url": openai_url.group(1) if openai_url else "https://api.openai.com/v1",

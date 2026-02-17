@@ -26,7 +26,7 @@ Flat structure, interactive-first, JSON config, bash launcher.
 2. `write_env_file()` writes `~/.config/claudeProfileManager/active_env` with export/unset statements
 3. `update_claude_settings()` writes `apiKeyHelper`, `env.ANTHROPIC_BASE_URL`, and `model` to `~/.claude/settings.json`
 4. For OAuth profiles: restores `~/.claude/.credentials.json` and updates `oauthAccount` in `~/.claude.json`; for API profiles: removes those OAuth files
-5. A shell function in `.bashrc` auto-sources `active_env` after each invocation so env vars apply to the current shell
+5. A shell function in `.bashrc`/`.zshrc` auto-sources `active_env` after each invocation so env vars apply to the current shell
 
 ### Profile Types
 
@@ -121,6 +121,6 @@ Zero external dependencies — pure Python standard library (`json`, `os`, `sys`
 
 ## First-Run Behavior
 
-1. Detects existing LLM keys in `~/.bashrc` and offers to import them
+1. Detects existing LLM keys in `~/.bashrc`/`~/.zshrc` and offers to import them
 2. If declined, prompts to create first profile interactively
-3. Automatically adds shell wrapper function to `~/.bashrc`
+3. Automatically adds shell wrapper function to the detected shell rc file (`~/.bashrc` or `~/.zshrc`)

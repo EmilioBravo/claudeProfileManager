@@ -8,6 +8,14 @@ MAIN_SCRIPT="$SCRIPT_DIR/claude_keys.py"
 INSTALL_DIR="$HOME/.local/bin"
 COMMAND_NAME="claudeProfileManager"
 
+# Detect shell rc file
+if [ -n "$ZSH_VERSION" ] || [ "$(basename "$SHELL")" = "zsh" ]; then
+    SHELL_RC="$HOME/.zshrc"
+else
+    SHELL_RC="$HOME/.bashrc"
+fi
+SHELL_RC_NAME="$(basename "$SHELL_RC")"
+
 echo "========================================================================"
 echo "Claude Profile Manager Installation"
 echo "========================================================================"
@@ -50,11 +58,11 @@ echo
 if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     echo "WARNING: $INSTALL_DIR is not in your PATH"
     echo
-    echo "Add this line to your ~/.bashrc or ~/.zshrc:"
+    echo "Add this line to your ~/$SHELL_RC_NAME:"
     echo
     echo "    export PATH=\"\$HOME/.local/bin:\$PATH\""
     echo
-    echo "Then run: source ~/.bashrc"
+    echo "Then run: source ~/$SHELL_RC_NAME"
     echo
 else
     echo "$INSTALL_DIR is already in your PATH"
@@ -62,17 +70,16 @@ else
     echo "You can now run: claudeProfileManager"
 fi
 
-# Add shell function to .bashrc if not already present
-BASHRC="$HOME/.bashrc"
+# Add shell function to rc file if not already present
 MARKER="# claudeProfileManager shell function"
 SHELL_FUNC_FILE="$SCRIPT_DIR/shell_function.sh"
 
-if [ -f "$BASHRC" ] && grep -qF "$MARKER" "$BASHRC"; then
-    echo "Shell function already in ~/.bashrc"
+if [ -f "$SHELL_RC" ] && grep -qF "$MARKER" "$SHELL_RC"; then
+    echo "Shell function already in ~/$SHELL_RC_NAME"
 else
-    cat "$SHELL_FUNC_FILE" >> "$BASHRC"
-    echo "Added claudeProfileManager shell function to ~/.bashrc"
-    echo "Run: source ~/.bashrc  (or open a new terminal)"
+    cat "$SHELL_FUNC_FILE" >> "$SHELL_RC"
+    echo "Added claudeProfileManager shell function to ~/$SHELL_RC_NAME"
+    echo "Run: source ~/$SHELL_RC_NAME  (or open a new terminal)"
 fi
 
 echo
